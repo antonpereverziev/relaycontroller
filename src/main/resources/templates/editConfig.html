@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Панель управления теплыми полами</title>
+  <meta charset='UTF-8'>
+  <script src="common.js"></script>
+  <script>
+
+  function onUpdate() {
+    var powerConsumption = getNumber("powerConsumption");
+    var periodsQuantity = getNumber("periodsQuantity");
+    var heatingPower = getNumber("heatingPower");
+    var beginTime = getTime('beginTime');
+    var endTime = getTime('endTime');
+    var totalTime = 0;
+    var coolingTime = 0;
+    var heatingTime = 0;
+    if (beginTime != 0 && endTime!= 0) {
+      totalTime =  (endTime - beginTime)*60;
+      setValue("totalTime", convertToTimestamp(totalTime));
+    }
+    if (powerConsumption != 0 && heatingPower != 0 && periodsQuantity != 0) {
+        heatingTime = powerConsumption*3600/(heatingPower*periodsQuantity);
+        setValue("heatingTime", convertToTimestamp(heatingTime));
+        setValue("cycleTime", convertToTimestamp(totalTime/periodsQuantity));
+        coolingTime = (totalTime/periodsQuantity) -  heatingTime;
+        setValue("coolingTime", convertToTimestamp(coolingTime));
+    }
+    refreshCanvas("canvas", beginTime, endTime, heatingTime, coolingTime, periodsQuantity);
+  }
+
+  function convertToTimestamp(seconds) {
+    var hours = Math.floor(seconds / 3600);
+    seconds %= 3600;
+    var minutes = Math.floor(seconds / 60);
+    var seconds = Math.floor(seconds % 60);
+    return hours + "h " + minutes + "m " + seconds + "s";
+  }
+
+   function getTime(id) {
+     var x = document.getElementById(id).value;
+     var splitTime = x.split(':');
+     if (isNaN(splitTime[0]) || isNaN(splitTime[1])) {
+       return 0;
+     }
+     return Number(splitTime[0])*60 + Number(splitTime[1]);
+   }
+
+   function validateNumber(id) {
+     var x;
+     // Get the value of the input field with id="numb"
+     x = document.getElementById(id).value;
+     // If x is Not a Number or less than one or greater than 10
+     if (isNaN(x) || x < 1 || x > 10) {
+       document.getElementById(id).style = "color: red;";
+     }
+   }
+
+   function getNumber(id) {
+     var x = document.getElementById(id).value;
+     if (isNaN(x)) {
+       return 0;
+     }
+     return Number(x);
+   }
+
+  </script>
+</head>
+<body onload="getTimer();">
+<h1>Изменение</h1>
+  <div>
+  <form action="/save" method="post">
+   <input onchange="calcParameters();" type="hidden" id="id" name="id"/>
+  <table>
+    <tr>
+      <td>Имя</td>
+      <td><input onchange="calcParameters();" type="text" id="name" name="name" value="{name}"/></td>
+    </tr>
+    <tr>
+      <td>Время включения</td>
+      <td><input type="text" id="beginTime" name="beginTime" value="09:00" onchange="onUpdate();"/></td>
+    </tr>
+    <tr>
+      <td>Время выключения</td>
+      <td><input type="text" id="endTime" name="endTime" value="20:54" onchange="onUpdate();"/></td>
+    </tr>
+    <tr>
+      <td>Расход электроэнергии</td>
+      <td><input type="text" id="powerConsumption" name="powerConsumption" onchange = "onUpdate();" value="1000"/></td>
+    </tr>
+    <tr>
+      <td>Мощность нагревательного шнура</td>
+      <td><input type="text" id="heatingPower" name="heatingPower" onchange = "onUpdate();" value="950"/></td>
+    </tr>
+    <tr>
+      <td>Количество включений</td>
+      <td><input type="text" id="periodsQuantity" name="periodsQuantity" onchange = "onUpdate();" value="10"/></td>
+    </tr>
+    <tr>
+      <td>Имя хоста контроллера</td>
+      <td><input type="text" id="controllerHostname" name="controllerHostname" value="{controllerHostname}"/></td>
+    </tr>
+  </table>
+  <p><input type="submit" value="Отправить" onsubmit="return validateNumber('powerConsumption')"/></p>
+  </form>
+  <h3>Расчитанные параметры:</h3>
+    <br/>Общее время работы <b><span id="totalTime"></span></b>
+    <br/>
+    <br/>Длительность цикла <b><span id="cycleTime"></span></b>
+    <br/>Длительность охлаждения <b><span id="coolingTime"></span></b>
+    <br/>Длительность нагрева <b><span id="heatingTime"></span></b>
+  </div>
+  <div>
+  <canvas id="canvas" width="1440" height="100" style="border:1px solid #c3c3c3;">
+  Your browser does not support the canvas element.
+  </canvas>
+  </div>
+</body>
+</html>
