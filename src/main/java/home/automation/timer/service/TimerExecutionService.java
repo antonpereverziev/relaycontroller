@@ -29,30 +29,32 @@ public class TimerExecutionService {
     private RelayTimerRepository relayTimerRepository;
 
     @Autowired
-    private RelayClientImpl relayClient;
+    private RelayClientImpl relayClientImpl;
 
-    private List<RelayTimer> timers = new CopyOnWriteArrayList<>();
+    private List<RelayTimer> timers;
 
     private final ScheduledExecutorService scheduler =
             Executors.newScheduledThreadPool(10);
 
     @PostConstruct
     public void beepForAnHour() {
-        timers.addAll(relayTimerRepository.findAll());
-        System.out.println(timers.size() + " timers has been initialised.");
         final Runnable beeper = new Runnable() {
             @Override
             public void run() {
+                timers = relayTimerRepository.findAll();
                 long secondsFromDayBeginning = LocalTime.now().toSecondOfDay();
+                System.out.println("-->>"+ secondsFromDayBeginning);
                 for (RelayTimer timer : timers) {
                     for (int second : timer.getEnableAtSecondOfDay()) {
+                        System.out.println("-->>>>>"+ second);
                         if (second - secondsFromDayBeginning < 10 && second - secondsFromDayBeginning >= 0) {
                             LOGGER.info("Enabled " + timer.getName() + " timer id = " + timer.getId());
-                            /*try {
-                                relayClient.enableRelayWithTimer(new URI("http","localhost:8888",""), "0", "");
+                            try {
+                                relayClientImpl.enableRelayWithTimer(timer.getControllerHostname(), "0", "10");
+                                break;
                             } catch (URISyntaxException e) {
                                 LOGGER.error("Cannot execte rest call", e);
-                            }*/
+                            }
                         }
                     }
                 }

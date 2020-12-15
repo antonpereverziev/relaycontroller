@@ -40,9 +40,10 @@ public class RelayTimer {
     public void init() {
         if (beginTime != null && endTime != null && periodsQuantity > 0) {
             enableAtSecondOfDay = new int[periodsQuantity];
-            int enabledTime = endTime.toSecondOfDay() - beginTime.toSecondOfDay();
+            int beginTimeSeconds = beginTime.toSecondOfDay();
+            int enabledTime = endTime.toSecondOfDay() - beginTimeSeconds;
             int period = enabledTime / periodsQuantity;
-            int initSecond = beginTime.toSecondOfDay();
+            int initSecond = beginTimeSeconds;
             for (int i = 0; i < periodsQuantity; i++) {
                 enableAtSecondOfDay[i] = initSecond;
                 initSecond += period;

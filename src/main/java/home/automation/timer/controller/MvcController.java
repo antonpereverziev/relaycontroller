@@ -51,7 +51,6 @@ public class MvcController {
 
     @RequestMapping("/edit")
     public String editPage(@RequestParam String id) {
-        System.out.println("---->>" + id);
         return "editConfig";
     }
 }
